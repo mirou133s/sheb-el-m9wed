@@ -228,27 +228,7 @@ class Music(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Music(bot))
-
-
-from flask import Flask
-from threading import Thread
-
-# ويب سيرفر
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return "Bot is alive!"
-
-def run_web():
-    app.run(host='0.0.0.0', port=10000, debug=False)
-
-# تشغيل ويب سيرفر في thread منفصل
-web_thread = Thread(target=run_web)
-web_thread.daemon = True
-web_thread.start()
-
-
+    
 bot.run(DISCORD_TOKEN)
 
 if __name__ == "__main__":
