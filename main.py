@@ -33,7 +33,6 @@ bot = commands.Bot(
 )
 
 ytdl_format_options = {
-ytdl_format_options = {
     'format': 'm4a/bestaudio/best',
     'postprocessors': [{
         'key': 'FFmpegExtractAudio',
