@@ -228,7 +228,7 @@ async def setup(bot):
 async def main():
     async with bot:
         await setup(bot)
-        await bot.start('MTI3Mzc2ODA4MTc1OTUzOTIyMA.Gvpre_.W_3mY0M69TE_nqXpiwWSQMReelPObRfVxT2eRQ')
+        await bot.start('MTI3Mzc2ODA4MTc1OTUzOTIyMA.G8yoGI.hMu5RbK0SbIGOiWGs2A5-PIhKguzqhx3flzvdw')
 
         webserver.keep_alive()
 
