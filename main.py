@@ -37,23 +37,13 @@ ytdl_format_options = {
     'extractaudio': True,
     'audioformat': 'mp3',
     'noplaylist': True,
-    'nocheckcertificate': True,
-    'ignoreerrors': True,  # غير من False إلى True
-    'logtostderr': False,
+    'ignoreerrors': True,
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
     'source_address': '0.0.0.0',
-    'socket_timeout': 10,
     'extract_flat': True,
-    # أضف هذه الإعدادات الجديدة:
-    'cookiefile': 'cookies.txt',  # إذا كان لديك ملف cookies
-    'extractor_args': {
-        'youtube': {
-            'player_client': ['android', 'web'],
-            'skip': ['dash', 'hls']
-        }
-    }
+    'cookiefile': 'cookies.txt'
 }
 
 def is_youtube_link(message_content):
