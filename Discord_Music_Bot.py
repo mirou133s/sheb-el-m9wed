@@ -8,6 +8,7 @@ from discord.ext import commands
 import asyncio
 import webserver
 
+
 from discord import Embed, Intents, Activity, Status, Color, ActivityType
 from discord import FFmpegOpusAudio, Message, utils
 from discord.ext import commands
@@ -228,7 +229,7 @@ async def setup(bot):
 async def main():
     async with bot:
         await setup(bot)
-        await bot.start('MTI3Mzc2ODA4MTc1OTUzOTIyMA.G8yoGI.hMu5RbK0SbIGOiWGs2A5-PIhKguzqhx3flzvdw')
+        await bot.start('MTI3Mzc2ODA4MTc1OTUzOTIyMA.GVdv8p.19MNvFr90x9sXSlxHQyUwl1cytTRiR6u_w-f2A')
 
         webserver.keep_alive()
 
