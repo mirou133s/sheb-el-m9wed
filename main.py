@@ -33,14 +33,27 @@ bot = commands.Bot(
 )
 
 ytdl_format_options = {
-    'format': 'm4a/bestaudio/best',
-    'postprocessors': [{
-        'key': 'FFmpegExtractAudio',
-        'preferredcodec': 'm4a',
-    }],
+    'format': 'bestaudio/best',
+    'extractaudio': True,
+    'audioformat': 'mp3',
+    'noplaylist': True,
+    'nocheckcertificate': True,
     'ignoreerrors': True,
+    'logtostderr': False,
     'quiet': True,
-    'no_warnings': True
+    'no_warnings': True,
+    'default_search': 'auto',
+    'source_address': '0.0.0.0',
+    'socket_timeout': 10,
+    'extract_flat': True,
+    # أضف هذه السطور:
+    'cookiefile': 'cookies.txt',
+    'extractor_args': {
+        'youtube': {
+            'player_client': ['android', 'web'],
+            'skip': ['dash', 'hls']
+        }
+    }
 }
 
 def is_youtube_link(message_content):
