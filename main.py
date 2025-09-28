@@ -4,48 +4,30 @@ import discord
 from discord.ext import commands
 import os
 
-# ويب سيرفر
 app = Flask(__name__)
 
 @app.route('/')
 def home():
     return "Bot is alive!"
 
-# البوت
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='.', intents=intents)
 
 @bot.event
 async def on_ready():
-    print(f'{bot.user} is online!')
+    print(f'✅ {bot.user} is online!')
 
 @bot.command()
 async def test(ctx):
-    await ctx.send('Bot is working!')
-
-def run_bot():
-    bot.run(os.environ['discordkey'])
+    await ctx.send('✅ Bot is working!')
 
 def run_web():
     app.run(host='0.0.0.0', port=10000, debug=False)
 
-if __name__ == "__main__":
-    # تشغيل الويب سيرفر
-    web_thread = Thread(target=run_web)
-    web_thread.daemon = True
-    web_thread.start()
+# تشغيل الويب سيرفر
+web_thread = Thread(target=run_web)
+web_thread.daemon = True
+web_thread.start()
 
-# تأكد من تحميل الـ Cog
-async def setup_hook():
-    await bot.add_cog(Music(bot))
-
-bot.setup_hook = setup_hook
-
-# أو استخدم هذا إذا لم يشتغل:
-@bot.event
-async def on_ready():
-    await bot.add_cog(Music(bot))
-    print(f'{bot.user} is online and commands are loaded!')
-    
-    # تشغيل البوت
-    run_bot()
+# تشغيل البوت
+bot.run(os.environ['discordkey'])
