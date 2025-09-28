@@ -34,28 +34,12 @@ bot = commands.Bot(
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
-    'extractaudio': True,
-    'audioformat': 'mp3',
-    'noplaylist': True,
     'ignoreerrors': True,
     'quiet': True,
     'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0',
-    'extractor_args': {
-        'youtube': {
-            'player_client': ['android', 'web'],
-            'skip': ['dash', 'hls'],
-            'player_skip': ['configs', 'webpage']
-        }
-    },
+    'extract_flat': False,
     'http_headers': {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-us,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
-        'Connection': 'keep-alive',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36'
     }
 }
 
