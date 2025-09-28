@@ -7,6 +7,8 @@ import discord
 from discord.ext import commands
 import asyncio
 import webserver
+import os
+DISCORD_TOKEN = os.environ['discordkey']
 
 
 from discord import Embed, Intents, Activity, Status, Color, ActivityType
@@ -226,12 +228,8 @@ class Music(commands.Cog):
 async def setup(bot):
     await bot.add_cog(Music(bot))
 
-async def main():
-    async with bot:
-        await setup(bot)
-        await bot.start('MTI3Mzc2ODA4MTc1OTUzOTIyMA.GVdv8p.19MNvFr90x9sXSlxHQyUwl1cytTRiR6u_w-f2A')
 
-        webserver.keep_alive()
+bot.run(DISCORD_TOKEN)
 
 if __name__ == "__main__":
     asyncio.run(main())
