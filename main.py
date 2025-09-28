@@ -3,56 +3,27 @@ from threading import Thread
 import discord
 from discord.ext import commands
 import os
+import re
+import asyncio
+import requests
+from discord import Embed, Intents, Activity, Status, Color, ActivityType, FFmpegOpusAudio, VoiceClient, Member, VoiceState
+from yt_dlp import YoutubeDL
+from youtubesearchpython import VideosSearch
+from typing import TYPE_CHECKING, Union, Optional
 
+if TYPE_CHECKING:
+    from discord.ext.commands import Bot
+
+# Flask app
 app = Flask(__name__)
 
 @app.route('/')
 def home():
     return "Bot is alive!"
 
-intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='.', intents=intents)
-
-@bot.event
-async def on_ready():
-    print(f'✅ {bot.user} is online!')
-
-@bot.command()
-async def test(ctx):
-    await ctx.send('✅ Bot is working!')
-
-def run_web():
-    app.run(host='0.0.0.0', port=10000, debug=False)
-
-# تشغيل الويب سيرفر
-web_thread = Thread(target=run_web)
-web_thread.daemon = True
-web_thread.start()
-from __future__ import annotations
-
-import re
-import asyncio
-import requests
-import discord
-from discord.ext import commands
-import asyncio
-import webserver
-import os
-from discord import Embed, Intents, Activity, Status, Color, ActivityType
-from discord import FFmpegOpusAudio, Message, utils
-from discord.ext import commands
-from yt_dlp import YoutubeDL
-from youtubesearchpython import VideosSearch
-from discord import VoiceClient, Member, VoiceState
-from typing import TYPE_CHECKING, Union, Optional
-
-if TYPE_CHECKING:
-    from discord.ext.commands import Bot
-
-from os import getenv
-
 EMBED_COLOR = 0x000000
 
+# تعريف البوت مرة واحدة فقط
 bot = commands.Bot(
     command_prefix='.',
     intents=discord.Intents.all(),
@@ -75,7 +46,6 @@ ytdl_format_options = {
     'source_address': '0.0.0.0',
     'socket_timeout': 10,
     'extract_flat': True
-
 }
 
 def is_youtube_link(message_content):
@@ -96,16 +66,9 @@ def get_duration(time):
     if time is None:
         return "LIVE STREAM :purple_circle:"
     hours = time // 3600
-    minutes = (time % 3600) // 3600
-    seconds = time % 3600
+    minutes = (time % 3600) // 60
+    seconds = time % 60
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}" if hours > 0 else f"{minutes:02d}:{seconds:02d}"
-
-
-
-async def check_play_status(self, ctx):
-    await asyncio.sleep(5)
-    if not ctx.voice_client.is_playing() and self.current_track:
-        await self.play_command(ctx, query=self.current_track.get('url'))
 
 class Music(commands.Cog):
     def __init__(self, bot):
@@ -119,7 +82,7 @@ class Music(commands.Cog):
         try:
             with YoutubeDL(ytdl_format_options) as ytdl:
                 info = ytdl.extract_info(url, download=False)
-                if 'entries' in info:  # في حالة وجود playlist
+                if 'entries' in info:
                     info = info['entries'][0]
                 
                 return {
@@ -132,10 +95,6 @@ class Music(commands.Cog):
         except Exception as e:
             print(f"Error getting audio info: {e}")
             return None
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print(f"Connected as {self.bot.user.name}")
 
     async def ensure_voice(self, ctx):
         if not ctx.author.voice:
@@ -150,7 +109,7 @@ class Music(commands.Cog):
         return True
 
     @commands.command(name='play', aliases=['p', 'ش'])
-    async def play_command(self, ctx: commands.Context, *, query: Optional[str]):
+    async def play_command(self, ctx: commands.Context, *, query: Optional[str] = None):
         if not query:
             await ctx.send("اكتب الغنية يا شباب يا لبنين")
             return
@@ -159,7 +118,6 @@ class Music(commands.Cog):
             return
 
         async with ctx.typing():
-            # البحث عن الأغنية
             if not is_youtube_link(query):
                 try:
                     search = VideosSearch(query, limit=1)
@@ -177,7 +135,6 @@ class Music(commands.Cog):
                     return
                 url = query
 
-            # الحصول على معلومات الأغنية
             track_info = self.get_audio_info(url, ctx)
             if not track_info or not track_info.get('url'):
                 await ctx.send("مركز استخبارات زكمها ملقاتش انفو على الغنية")
@@ -185,12 +142,10 @@ class Music(commands.Cog):
 
             self.current_track = track_info
 
-            # تشغيل الأغنية
             try:
                 source = FFmpegOpusAudio(track_info['url'])
                 ctx.voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(self.on_track_end(ctx), self.bot.loop))
                 
-                # إرسال رسالة التشغيل
                 embed = Embed(
                     title="راح تبدا الغنية اغلقها و لا نغلقهالك",
                     description=f"[{track_info['title']}]({url})",
@@ -201,7 +156,7 @@ class Music(commands.Cog):
                 embed.set_footer(text=f"لعطاي لحب يسمع {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
                 await ctx.send(embed=embed)
             except Exception as e:
-                await ctx.send(f" كاين عفسا جيب الوسمو و لا سقسي شيكور  {e}")
+                await ctx.send(f"كاين عفسا جيب الوسمو و لا سقسي شيكور {e}")
 
     async def on_track_end(self, ctx):
         if self.is_loop and not self.should_skip:
@@ -213,7 +168,7 @@ class Music(commands.Cog):
     @commands.command(name='skip', aliases=['s'])
     async def skip_command(self, ctx: commands.Context):
         if not ctx.voice_client or not ctx.voice_client.is_playing():
-            await ctx.send("مكاش وش نسكيبي تزيد تعييني نعييك ")
+            await ctx.send("مكاش وش نسكيبي تزيد تعييني نعييك")
             return
             
         self.should_skip = True
@@ -240,8 +195,8 @@ class Music(commands.Cog):
             return
             
         self.is_loop = not self.is_loop
-        status = "rigel" if self.is_loop else " قود درك نديرهولك "
-        await ctx.send(f"{status} عاودتها في خاطر الشيكور  ")
+        status = "rigel" if self.is_loop else "قود درك نديرهولك"
+        await ctx.send(f"{status} عاودتها في خاطر الشيكور")
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: Member, before: VoiceState, after: VoiceState):
@@ -252,5 +207,24 @@ class Music(commands.Cog):
                 self.is_loop = False
                 self.should_skip = False
 
+# تحميل الـ Cog
+async def load_cogs():
+    await bot.add_cog(Music(bot))
 
-bot.run(os.environ['discordkey'])
+@bot.event
+async def on_ready():
+    await load_cogs()
+    print(f'✅ {bot.user} is online with music commands!')
+
+def run_web():
+    app.run(host='0.0.0.0', port=10000, debug=False)
+
+# التشغيل الرئيسي
+if __name__ == "__main__":
+    # تشغيل الويب سيرفر في thread منفصل
+    web_thread = Thread(target=run_web)
+    web_thread.daemon = True
+    web_thread.start()
+    
+    # تشغيل البوت
+    bot.run(os.environ['discordkey'])
