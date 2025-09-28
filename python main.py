@@ -229,7 +229,5 @@ async def setup(bot):
     await bot.add_cog(Music(bot))
 
 
-bot.run(DISCORD_TOKEN)
-
 if __name__ == "__main__":
-    asyncio.run(main())
+    bot.run(DISCORD_TOKEN)
