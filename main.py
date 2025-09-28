@@ -34,6 +34,18 @@ if __name__ == "__main__":
     web_thread = Thread(target=run_web)
     web_thread.daemon = True
     web_thread.start()
+
+# تأكد من تحميل الـ Cog
+async def setup_hook():
+    await bot.add_cog(Music(bot))
+
+bot.setup_hook = setup_hook
+
+# أو استخدم هذا إذا لم يشتغل:
+@bot.event
+async def on_ready():
+    await bot.add_cog(Music(bot))
+    print(f'{bot.user} is online and commands are loaded!')
     
     # تشغيل البوت
     run_bot()
