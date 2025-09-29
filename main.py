@@ -78,6 +78,7 @@ class Music(commands.Cog):
         self.is_loop = False
         self.should_skip = False
         self.current_track: dict = {}
+        self.current_ctx = None  # ⬅️ إضافة مهمة
 
     def get_audio_info(self, url: str, ctx: commands.Context) -> Optional[dict]:
         try:
@@ -109,6 +110,33 @@ class Music(commands.Cog):
         
         return True
 
+    async def play_audio(self, ctx, track_info):
+        """دالة منفصلة للتشغيل"""
+        try:
+            source = FFmpegOpusAudio(track_info['url'], **ffmpeg_options)
+            self.current_ctx = ctx  # ⬅️ حفظ الـ context
+            
+            def after_play(error):
+                if error:
+                    print(f"Playback error: {error}")
+                # تشغيل التالي بعد الانتهاء
+                asyncio.run_coroutine_threadsafe(self.on_track_end(), self.bot.loop)
+            
+            ctx.voice_client.play(source, after=after_play)
+            
+            embed = Embed(
+                title="راح تبدا الغنية اغلقها و لا نغلقهالك",
+                description=f"[{track_info['title']}]({track_info.get('original_url', '')})",
+                color=EMBED_COLOR
+            )
+            embed.add_field(name="وقت تمنييك", value=get_duration(track_info['duration']))
+            embed.set_thumbnail(url=track_info['thumbnail'])
+            embed.set_footer(text=f"لعطاي لحب يسمع {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
+            await ctx.send(embed=embed)
+            
+        except Exception as e:
+            await ctx.send(f"كاين عفسا جيب الوسمو و لا سقسي شيكور {e}")
+
     @commands.command(name='play', aliases=['p', 'ش'])
     async def play_command(self, ctx: commands.Context, *, query: Optional[str] = None):
         if not query:
@@ -119,6 +147,7 @@ class Music(commands.Cog):
             return
 
         async with ctx.typing():
+            original_url = query
             if not is_youtube_link(query):
                 try:
                     search = VideosSearch(query, limit=1)
@@ -127,6 +156,7 @@ class Music(commands.Cog):
                         await ctx.send("مكاش الغنية تزيد تعيني نعيييك فواحد لبلاصة")
                         return
                     url = result[0]['link']
+                    original_url = url  # ⬅️ حفظ الرابط الأصلي
                 except Exception as e:
                     await ctx.send(f"اكتب مليح يا لهايشة {e}")
                     return
@@ -141,30 +171,22 @@ class Music(commands.Cog):
                 await ctx.send("مركز استخبارات زكمها ملقاتش انفو على الغنية")
                 return
 
+            track_info['original_url'] = original_url  # ⬅️ إضافة الرابط الأصلي
             self.current_track = track_info
 
-            try:
-                source = FFmpegOpusAudio(track_info['url'])
-                ctx.voice_client.play(source, after=lambda e: asyncio.run_coroutine_threadsafe(self.on_track_end(ctx), self.bot.loop))
-                
-                embed = Embed(
-                    title="راح تبدا الغنية اغلقها و لا نغلقهالك",
-                    description=f"[{track_info['title']}]({url})",
-                    color=EMBED_COLOR
-                )
-                embed.add_field(name="وقت تمنييك", value=get_duration(track_info['duration']))
-                embed.set_thumbnail(url=track_info['thumbnail'])
-                embed.set_footer(text=f"لعطاي لحب يسمع {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
-                await ctx.send(embed=embed)
-            except Exception as e:
-                await ctx.send(f"كاين عفسا جيب الوسمو و لا سقسي شيكور {e}")
+            # التشغيل المباشر بدون تأخير
+            await self.play_audio(ctx, track_info)
 
-    async def on_track_end(self, ctx):
-        if self.is_loop and not self.should_skip:
-            await self.play_command(ctx, query=self.current_track.get('url', ''))
+    async def on_track_end(self):
+        """عند انتهاء الأغنية"""
+        if self.is_loop and not self.should_skip and self.current_ctx:
+            # إعادة التشغيل إذا كان Loop مفعل
+            await self.play_audio(self.current_ctx, self.current_track)
         else:
+            # إعادة الضبط
             self.current_track = {}
             self.should_skip = False
+            self.current_ctx = None
 
     @commands.command(name='skip', aliases=['s'])
     async def skip_command(self, ctx: commands.Context):
@@ -173,7 +195,6 @@ class Music(commands.Cog):
             return
             
         self.should_skip = True
-        self.is_loop = False
         ctx.voice_client.stop()
         await ctx.send("لمرة لخرى نسكيبي مارانيش خدام عليك")
 
@@ -187,6 +208,7 @@ class Music(commands.Cog):
         self.current_track = {}
         self.is_loop = False
         self.should_skip = False
+        self.current_ctx = None
         await ctx.send("اتهلا في ترمتك")
 
     @commands.command(name='repeat', aliases=['loop', 'r'])
@@ -207,6 +229,7 @@ class Music(commands.Cog):
                 self.current_track = {}
                 self.is_loop = False
                 self.should_skip = False
+                self.current_ctx = None
 
 # تحميل الـ Cog
 async def load_cogs():
