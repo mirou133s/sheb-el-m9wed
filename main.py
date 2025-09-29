@@ -29,7 +29,11 @@ bot = commands.Bot(
     intents=discord.Intents.all(),
     activity=Activity(type=ActivityType.playing, name="EA SPORTS FC 26"),
     status=Status.idle,
-    help_command=None
+    help_command=None,
+     heartbeat_timeout=60.0,
+    guild_ready_timeout=10.0,
+    member_cache_flags=discord.MemberCacheFlags.none(),
+    chunk_guilds_at_startup=False,
 )
 
 ytdl_format_options = {
@@ -211,6 +215,7 @@ class Music(commands.Cog):
         self.current_ctx = None
         await ctx.send("اتهلا في ترمتك")
 
+
     @commands.command(name='repeat', aliases=['loop', 'r'])
     async def repeat_command(self, ctx: commands.Context):
         if not ctx.voice_client or not ctx.voice_client.is_playing():
@@ -230,6 +235,11 @@ class Music(commands.Cog):
                 self.is_loop = False
                 self.should_skip = False
                 self.current_ctx = None
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    # تجاهل تحديثات الحالة لتقليل الضغط
+    pass
 
 # تحميل الـ Cog
 async def load_cogs():
