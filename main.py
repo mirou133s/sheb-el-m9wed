@@ -34,7 +34,7 @@ bot = commands.Bot(
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+    'cookiefile': 'cookies.txt',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
